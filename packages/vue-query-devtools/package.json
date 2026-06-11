@@ -16,13 +16,7 @@
   },
   "scripts": {
     "clean": "premove ./build ./coverage ./dist-ts",
-    "compile": "vue-tsc --build",
-    "test:eslint": "eslint --concurrency=auto ./src",
-    "test:types": "vue-tsc --build",
-    "test:lib": "vitest",
-    "test:lib:dev": "pnpm run test:lib --watch",
-    "test:build": "publint --strict && attw --pack",
-    "build": "pnpm run compile && vite build"
+    "test:lib:dev": "vitest --watch"
   },
   "type": "module",
   "types": "dist/esm/index.d.ts",

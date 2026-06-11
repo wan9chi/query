@@ -17,9 +17,6 @@
   },
   "scripts": {
     "clean": "premove ./build ./coverage ./dist-ts",
-    "compile": "tsc --build",
-    "test:eslint": "eslint --concurrency=auto ./src",
-    "test:types": "npm-run-all --serial test:types:*",
     "test:types:ts54": "node ../../node_modules/typescript54/lib/tsc.js --build",
     "test:types:ts55": "node ../../node_modules/typescript55/lib/tsc.js --build",
     "test:types:ts56": "node ../../node_modules/typescript56/lib/tsc.js --build",
@@ -28,10 +25,7 @@
     "test:types:ts59": "node ../../node_modules/typescript59/lib/tsc.js --build",
     "test:types:tscurrent": "tsc --build",
     "test:types:ts60": "node ../../node_modules/typescript60/lib/tsc.js --build",
-    "test:lib": "vitest",
-    "test:lib:dev": "pnpm run test:lib --watch",
-    "test:build": "publint --strict && attw --pack",
-    "build": "pnpm build:tsup",
+    "test:lib:dev": "vitest --watch",
     "build:tsup": "tsup --tsconfig tsconfig.prod.json"
   },
   "type": "module",
@@ -65,8 +59,7 @@
     "@tanstack/query-test-utils": "workspace:*",
     "@testing-library/angular": "^18.0.0",
     "@testing-library/dom": "^10.4.0",
-    "eslint-plugin-jsdoc": "^50.5.0",
-    "npm-run-all2": "^5.0.0"
+    "eslint-plugin-jsdoc": "^50.5.0"
   },
   "peerDependencies": {
     "@angular/common": ">=16.0.0",

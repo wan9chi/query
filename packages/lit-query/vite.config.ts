@@ -1,37 +1,4 @@
-import { defineConfig } from 'vitest/config'
-import solid from 'vite-plugin-solid'
-
-import packageJson from './package.json'
-
-const viteConfig = defineConfig({
-  plugins: [solid()],
-  // fix from https://github.com/vitest-dev/vitest/issues/6992#issuecomment-2509408660
-  resolve: {
-    conditions: ['@tanstack/custom-condition'],
-  },
-  environments: {
-    ssr: {
-      resolve: {
-        conditions: ['@tanstack/custom-condition'],
-      },
-    },
-  },
-  test: {
-    name: packageJson.name,
-    dir: './src',
-    watch: false,
-    environment: 'jsdom',
-    setupFiles: ['test-setup.ts'],
-    coverage: {
-      enabled: !!process.env.CI,
-      provider: 'istanbul',
-      include: ['src/**/*'],
-      exclude: ['src/__tests__/**'],
-    },
-    typecheck: { enabled: true },
-    restoreMocks: true,
-  },
-})
+const viteConfig = {}
 
 export default {
   ...viteConfig,
@@ -48,27 +15,18 @@ export default {
           '!dist-ts/**',
           '!**/*.tsbuildinfo',
           {
-            pattern: '!packages/solid-query',
+            pattern: '!packages/lit-query',
             base: 'workspace',
           },
         ],
         output: ['dist-ts/**'],
       },
       'test:eslint': {
-        command: 'eslint --concurrency=auto ./src',
+        command: 'eslint .',
         dependsOn: ['compile'],
       },
       'test:types': {
-        command: [
-          'node ../../node_modules/typescript54/lib/tsc.js -p tsconfig.legacy.json --composite false --emitDeclarationOnly false --noEmit',
-          'node ../../node_modules/typescript55/lib/tsc.js -p tsconfig.legacy.json --composite false --emitDeclarationOnly false --noEmit',
-          'node ../../node_modules/typescript56/lib/tsc.js -p tsconfig.legacy.json --composite false --emitDeclarationOnly false --noEmit',
-          'node ../../node_modules/typescript57/lib/tsc.js -p tsconfig.legacy.json --composite false --emitDeclarationOnly false --noEmit',
-          'node ../../node_modules/typescript58/lib/tsc.js -p tsconfig.legacy.json --composite false --emitDeclarationOnly false --noEmit',
-          'node ../../node_modules/typescript59/lib/tsc.js -p tsconfig.legacy.json --composite false --emitDeclarationOnly false --noEmit',
-          'node ../../node_modules/typescript/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
-          'node ../../node_modules/typescript60/lib/tsc.js -p tsconfig.legacy.json --composite false --emitDeclarationOnly false --noEmit',
-        ],
+        command: 'node ../../node_modules/typescript/lib/tsc.js --noEmit',
         dependsOn: ['compile'],
         input: [
           {
@@ -80,7 +38,7 @@ export default {
         ],
       },
       'test:lib': {
-        command: 'vitest --retry=3',
+        command: 'vitest run',
         env: ['CI'],
         input: [
           {
@@ -106,7 +64,8 @@ export default {
         output: ['coverage/**'],
       },
       'test:build': {
-        command: 'publint --strict && attw --pack',
+        command:
+          'publint --strict && attw --pack && node scripts/check-cjs-types-smoke.mjs',
         dependsOn: ['build'],
         input: [
           {
@@ -116,7 +75,11 @@ export default {
         ],
       },
       build: {
-        command: 'tsup --tsconfig tsconfig.prod.json',
+        command: [
+          'node ../../node_modules/typescript/lib/tsc.js -p tsconfig.build.json',
+          "node -e \"require('node:fs').rmSync('dist-cjs', { recursive: true, force: true })\" && node ../../node_modules/typescript/lib/tsc.js -p tsconfig.build.cjs.json && node scripts/write-cjs-package.mjs",
+        ],
+        dependsOn: ['@tanstack/query-core#build'],
         input: [
           {
             auto: true,
@@ -139,7 +102,7 @@ export default {
             base: 'workspace',
           },
           {
-            pattern: '!packages/solid-query',
+            pattern: '!packages/lit-query',
             base: 'workspace',
           },
         ],

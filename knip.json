@@ -5,7 +5,12 @@
     "@types/react",
     "@types/react-dom",
     "react",
-    "react-dom"
+    "react-dom",
+    "@arethetypeswrong/cli",
+    "publint",
+    "sherif",
+    "markdown-link-extractor",
+    "tinyglobby"
   ],
   "ignoreWorkspaces": ["examples/**", "integrations/**"],
   "workspaces": {
@@ -20,10 +25,23 @@
       "ignore": ["**/__testfixtures__/**"]
     },
     "packages/lit-query": {
-      "ignore": ["src/tests/**"]
+      "ignore": ["src/tests/**", "scripts/**"]
     },
     "packages/vue-query": {
       "ignoreDependencies": ["vue2", "vue2.7"]
+    },
+    "packages/svelte-query": {
+      "ignoreDependencies": ["@sveltejs/package", "svelte-check"]
+    },
+    "packages/svelte-query-devtools": {
+      "ignoreDependencies": ["@sveltejs/package", "svelte-check"]
+    },
+    "packages/svelte-query-persist-client": {
+      "ignoreDependencies": ["@sveltejs/package", "svelte-check"]
+    },
+    "packages/vue-query-devtools": {
+      "ignoreDependencies": ["vue-tsc"]
     }
-  }
+  },
+  "ignoreBinaries": ["vp", "nx-cloud"]
 }

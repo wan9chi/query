@@ -21,13 +21,7 @@
   ],
   "scripts": {
     "clean": "premove ./dist ./coverage ./.svelte-kit ./dist-ts",
-    "compile": "tsc --build",
-    "test:types": "svelte-check --tsconfig ./tsconfig.json",
-    "test:eslint": "eslint --concurrency=auto ./src ./tests",
-    "test:lib": "vitest",
-    "test:lib:dev": "pnpm run test:lib --watch",
-    "test:build": "publint --strict && attw --pack",
-    "build": "svelte-package --input ./src --output ./dist"
+    "test:lib:dev": "vitest --watch"
   },
   "type": "module",
   "types": "dist/index.d.ts",

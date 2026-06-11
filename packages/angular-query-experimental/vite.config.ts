@@ -112,7 +112,7 @@ export const tanstackViteConfig = (options: Options) => {
   })
 }
 
-export default mergeConfig(
+const viteConfig = mergeConfig(
   config,
   tanstackViteConfig({
     cjs: false,
@@ -129,3 +129,134 @@ export default mergeConfig(
     tsconfigPath: 'tsconfig.prod.json',
   }),
 )
+
+export default {
+  ...viteConfig,
+  run: {
+    tasks: {
+      compile: {
+        command:
+          'node ../../node_modules/typescript/lib/tsc.js -p tsconfig.json',
+        // tsconfig.json references both projects, but package.json only
+        // depends on query-core, so there is no implicit workspace ordering
+        // for query-devtools — it must be an explicit task dependency.
+        dependsOn: [
+          '@tanstack/query-core#compile',
+          '@tanstack/query-devtools#compile',
+        ],
+        input: [
+          {
+            auto: true,
+          },
+          '!dist-ts/**',
+          '!**/*.tsbuildinfo',
+          {
+            pattern: '!packages/angular-query-experimental',
+            base: 'workspace',
+          },
+        ],
+        output: ['dist-ts/**'],
+      },
+      'test:eslint': {
+        command: 'eslint --concurrency=auto ./src',
+        dependsOn: ['compile'],
+      },
+      'test:types': {
+        command: [
+          'node ../../node_modules/typescript54/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+          'node ../../node_modules/typescript55/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+          'node ../../node_modules/typescript56/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+          'node ../../node_modules/typescript57/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+          'node ../../node_modules/typescript58/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+          'node ../../node_modules/typescript59/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+          'node ../../node_modules/typescript/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+          'node ../../node_modules/typescript60/lib/tsc.js -p tsconfig.json --composite false --emitDeclarationOnly false --noEmit',
+        ],
+        dependsOn: ['compile'],
+        input: [
+          {
+            auto: true,
+          },
+          '!dist-ts/**',
+          '!**/*.tsbuildinfo',
+          '!.svelte-kit/**',
+        ],
+      },
+      'test:lib': {
+        command: 'vitest',
+        env: ['CI'],
+        input: [
+          {
+            pattern: '!node_modules/**/*.tsbuildinfo',
+            base: 'workspace',
+          },
+          {
+            auto: true,
+          },
+          '!coverage/**',
+          '!**/*.tsbuildinfo',
+          '!node_modules/.vite-temp/**',
+          '!node_modules/.vite/**',
+          {
+            pattern: '!node_modules/.vite-temp/**',
+            base: 'workspace',
+          },
+          {
+            pattern: '!node_modules/.vite/**',
+            base: 'workspace',
+          },
+        ],
+        output: ['coverage/**'],
+      },
+      'test:build': {
+        command:
+          'pnpm pack --pack-destination .pack && publint .pack/*.tgz --strict && attw .pack/*.tgz; premove .pack',
+        dependsOn: ['build'],
+        input: [
+          '!.pack/**',
+          '!dist/README.md',
+          '!dist/package.json',
+          {
+            auto: true,
+          },
+          '!**/*.tgz',
+        ],
+      },
+      build: {
+        command: 'vite build',
+        // query-devtools is only an optionalDependency, which does not create
+        // a workspace graph edge in vp, so the build ordering must be explicit
+        // (the vite build resolves @tanstack/query-devtools' published types
+        // from its build/ output).
+        dependsOn: ['@tanstack/query-devtools#build'],
+        input: [
+          {
+            auto: true,
+          },
+          '!build/**',
+          '!dist/**',
+          '!dist-cjs/**',
+          '!.svelte-kit/**',
+          '!**/*.tsbuildinfo',
+          '!tsup.config.bundled*',
+          '!.tsup/**',
+          '!node_modules/.vite-temp/**',
+          '!node_modules/.vite/**',
+          {
+            pattern: '!node_modules/.vite-temp/**',
+            base: 'workspace',
+          },
+          {
+            pattern: '!node_modules/.vite/**',
+            base: 'workspace',
+          },
+          {
+            pattern: '!packages/angular-query-experimental',
+            base: 'workspace',
+          },
+        ],
+        output: ['build/**', 'dist/**', 'dist-cjs/**'],
+      },
+    },
+  },
+} as Record<string, unknown>

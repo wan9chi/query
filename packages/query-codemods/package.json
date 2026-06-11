@@ -16,9 +16,7 @@
   },
   "scripts": {
     "clean": "premove ./coverage ./dist-ts",
-    "test:eslint": "eslint --concurrency=auto ./src",
-    "test:lib": "vitest",
-    "test:lib:dev": "pnpm run test:lib --watch"
+    "test:lib:dev": "vitest --watch"
   },
   "type": "module",
   "exports": {

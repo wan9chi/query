@@ -16,9 +16,6 @@
   },
   "scripts": {
     "clean": "premove ./build ./coverage ./dist-ts",
-    "compile": "tsc --build",
-    "test:eslint": "eslint --concurrency=auto ./src",
-    "test:types": "npm run compile && npm-run-all --serial test:types:*",
     "test:types:ts54": "node ../../node_modules/typescript54/lib/tsc.js --build",
     "test:types:ts55": "node ../../node_modules/typescript55/lib/tsc.js --build",
     "test:types:ts56": "node ../../node_modules/typescript56/lib/tsc.js --build",
@@ -26,10 +23,7 @@
     "test:types:ts58": "node ../../node_modules/typescript58/lib/tsc.js --build",
     "test:types:ts59": "node ../../node_modules/typescript59/lib/tsc.js --build",
     "test:types:ts60": "node ../../node_modules/typescript60/lib/tsc.js --build",
-    "test:lib": "vitest",
-    "test:lib:dev": "pnpm run test:lib --watch",
-    "test:build": "publint --strict && attw --pack",
-    "build": "tsup --tsconfig tsconfig.prod.json"
+    "test:lib:dev": "vitest --watch"
   },
   "type": "module",
   "types": "./build/index.d.ts",
@@ -69,7 +63,6 @@
     "@solidjs/testing-library": "^0.8.10",
     "@tanstack/query-test-utils": "workspace:*",
     "@tanstack/solid-query": "workspace:*",
-    "npm-run-all2": "^5.0.0",
     "solid-js": "^1.9.7",
     "tsup-preset-solid": "^2.2.0",
     "vite-plugin-solid": "^2.11.6"
