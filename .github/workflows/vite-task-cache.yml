@@ -1,0 +1,91 @@
+name: Vite Task Cache
+
+on:
+  push:
+    branches: [vite-task-migration]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  test-ci:
+    name: Restore, run, and save cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Tools
+        uses: TanStack/config/.github/setup@e4b48f16568324f76f467aa4c2aac2f05db632c3
+
+      - name: Verify Vite Task CLI
+        run: pnpm exec vp --version
+
+      - name: Restore Vite Task cache
+        id: vite-task-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules/.vite/task-cache
+          key: vite-task-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.run_id }}
+          restore-keys: |
+            vite-task-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            vite-task-${{ runner.os }}-${{ github.ref_name }}-
+            vite-task-${{ runner.os }}-
+
+      - name: Report restored cache
+        run: |
+          {
+            echo "### Vite Task cache restore"
+            echo "- cache-hit: ${{ steps.vite-task-cache.outputs.cache-hit }}"
+            echo "- matched-key: ${{ steps.vite-task-cache.outputs.cache-matched-key }}"
+            echo "- primary-key: ${{ steps.vite-task-cache.outputs.cache-primary-key }}"
+            echo "- size-before: $(du -sh node_modules/.vite/task-cache 2>/dev/null | cut -f1 || echo 'missing')"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run migrated CI pipeline
+        run: |
+          set -o pipefail
+          pnpm run test:ci 2>&1 | tee vite-task-ci.log
+
+      - name: Validate Vite Task execution
+        run: |
+          if grep -q "Cache lookup failed" vite-task-ci.log; then
+            echo "Vite Task reported a cache lookup failure; refusing to treat this run as valid." >&2
+            exit 1
+          fi
+
+          if grep -q "vp run: 0/0 cache hit" vite-task-ci.log; then
+            echo "Vite Task reported a zero-task run; refusing to treat this run as valid." >&2
+            exit 1
+          fi
+
+          if ! grep -q "cache hit" vite-task-ci.log; then
+            echo "No Vite Task cache summary was found in the CI log." >&2
+            exit 1
+          fi
+
+      - name: Report populated cache
+        if: ${{ always() }}
+        run: |
+          {
+            echo "### Vite Task cache after run"
+            echo "- size-after: $(du -sh node_modules/.vite/task-cache 2>/dev/null | cut -f1 || echo 'missing')"
+          } >> "$GITHUB_STEP_SUMMARY"
+          pnpm exec vp run --last-details || true
+
+      - name: Save Vite Task cache
+        if: ${{ success() }}
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules/.vite/task-cache
+          key: ${{ steps.vite-task-cache.outputs.cache-primary-key }}
