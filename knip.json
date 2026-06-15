@@ -43,5 +43,5 @@
       "ignoreDependencies": ["vue-tsc"]
     }
   },
-  "ignoreBinaries": ["vp", "nx-cloud"]
+  "ignoreBinaries": ["nx-cloud"]
 }
